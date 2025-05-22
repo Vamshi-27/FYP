@@ -53,13 +53,14 @@ while True:
     result = hands.process(rgb_roi)
     gesture = "none"
 
-    if result.multi_hand_landmarks:
+    if result.multi_hand_landmarks is not None:
         gesture = predict_gesture(roi)
+        print(f"[INFO] Predicted gesture: {gesture}")
 
         for hand_landmarks in result.multi_hand_landmarks:
             mp_draw.draw_landmarks(roi, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-        # Mouse control based on gesture
+        # === Real gesture-based actions ===
         if gesture == "peace":
             gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
             _, thresh = cv2.threshold(gray, 60, 255, cv2.THRESH_BINARY_INV)
@@ -76,28 +77,34 @@ while True:
                     smooth_y = prev_y + (screen_y - prev_y) // 5
                     pyautogui.moveTo(smooth_x, smooth_y)
                     prev_x, prev_y = smooth_x, smooth_y
+                    print(f"[ACTION] Move mouse to: ({smooth_x}, {smooth_y})")
 
         elif gesture == "fist":
             pyautogui.click(button="left")
+            print("[ACTION] Left click")
             time.sleep(0.5)
 
         elif gesture == "five":
             pyautogui.click(button="right")
+            print("[ACTION] Right click")
             time.sleep(0.5)
 
         elif gesture == "thumbs":
             pyautogui.scroll(-20)
+            print("[ACTION] Scroll down")
             time.sleep(0.3)
 
         elif gesture == "rad":
             pyautogui.scroll(20)
+            print("[ACTION] Scroll up")
             time.sleep(0.3)
 
         elif gesture == "straight":
             pyautogui.hotkey('alt', 'f4')
+            print("[ACTION] Close window")
             time.sleep(1)
 
-    # FPS display
+    # FPS calculation
     curr_time = time.time()
     fps = 1 / (curr_time - prev_time)
     prev_time = curr_time
@@ -107,7 +114,7 @@ while True:
     # Draw ROI
     cv2.rectangle(frame, (100, 100), (400, 400), (0, 255, 0), 2)
 
-    # Show windows
+    # Show video
     cv2.imshow("Hand Gesture Control", frame)
     cv2.imshow("ROI", roi)
 
